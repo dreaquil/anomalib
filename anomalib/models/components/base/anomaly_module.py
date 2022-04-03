@@ -21,7 +21,7 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig, ListConfig
 from pytorch_lightning.callbacks.base import Callback
 from torch import Tensor, nn
-from torchmetrics import F1, MetricCollection
+from torchmetrics import F1, ROC, MetricCollection
 
 from anomalib.utils.metrics import (
     AUROC,
@@ -58,6 +58,7 @@ class AnomalyModule(pl.LightningModule, ABC):
         self.model: nn.Module
 
         # metrics
+        self.roc = ROC(num_classes=1, pos_label=1, compute_on_step=False)
         image_auroc = AUROC(num_classes=1, pos_label=1, compute_on_step=False)
         image_f1 = F1(num_classes=1, compute_on_step=False, threshold=self.hparams.model.threshold.image_default)
         pixel_auroc = AUROC(num_classes=1, pos_label=1, compute_on_step=False)
@@ -164,6 +165,7 @@ class AnomalyModule(pl.LightningModule, ABC):
             if "mask" in output.keys() and "anomaly_maps" in output.keys():
                 pixel_metric.cpu()
                 pixel_metric.update(output["anomaly_maps"].flatten(), output["mask"].flatten().int())
+            self.roc.update(output["pred_scores"], output["label"].int())
 
     def _post_process(self, outputs):
         """Compute labels based on model predictions."""
@@ -181,5 +183,9 @@ class AnomalyModule(pl.LightningModule, ABC):
     def _log_metrics(self):
         """Log computed performance metrics."""
         self.log_dict(self.image_metrics)
+        fpr, tpr, thresholds = self.roc.compute()
+        self.trainer.callback_metrics['roc'] = {
+            'fpr': fpr, 'tpr': tpr, 'thresholds': thresholds}
+        self.roc.reset()
         if self.hparams.dataset.task == "segmentation":
             self.log_dict(self.pixel_metrics)
