@@ -25,7 +25,6 @@ from pytorch_lightning.callbacks import Callback, ModelCheckpoint
 from .cdf_normalization import CdfNormalizationCallback
 from .min_max_normalization import MinMaxNormalizationCallback
 from .model_loader import LoadModelCallback
-from .save_to_csv import SaveToCSVCallback
 from .timer import TimerCallback
 from .visualizer_callback import VisualizerCallback
 
@@ -33,7 +32,6 @@ __all__ = [
     "LoadModelCallback",
     "TimerCallback",
     "VisualizerCallback",
-    "SaveToCSVCallback",
 ]
 
 
@@ -79,7 +77,11 @@ def get_callbacks(config: Union[ListConfig, DictConfig]) -> List[Callback]:
             raise ValueError(f"Normalization method not recognized: {config.model.normalization_method}")
 
     if not config.project.log_images_to == []:
-        callbacks.append(VisualizerCallback(inputs_are_normalized=not config.model.normalization_method == "none"))
+        callbacks.append(
+            VisualizerCallback(
+                task=config.dataset.task, inputs_are_normalized=not config.model.normalization_method == "none"
+            )
+        )
 
     if "optimization" in config.keys():
         if "nncf" in config.optimization and config.optimization.nncf.apply:
@@ -106,9 +108,5 @@ def get_callbacks(config: Union[ListConfig, DictConfig]) -> List[Callback]:
                     filename="openvino_model",
                 )
             )
-
-    if "save_to_csv" in config.project.keys():
-        if config.project.save_to_csv:
-            callbacks.append(SaveToCSVCallback())
 
     return callbacks

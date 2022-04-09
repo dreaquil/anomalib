@@ -9,7 +9,9 @@ dataset:
   test_batch_size: 32
   inference_batch_size: 32
   num_workers: 32
-  transform_config: null
+  transform_config:
+    train: null
+    val: null
   create_validation_set: false
   tiling:
     apply: true
@@ -43,8 +45,7 @@ project:
   seed: 0
   path: ./results
   log_images_to: []
-  logger: false
-  save_to_csv: false
+  logger: false # options: [tensorboard, wandb, csv] or combinations.
 
 optimization:
   openvino:
@@ -60,9 +61,9 @@ trainer:
   auto_select_gpus: false
   benchmark: false
   check_val_every_n_epoch: 2
-  checkpoint_callback: true
   default_root_dir: null
   deterministic: false
+  enable_checkpointing: true
   fast_dev_run: false
   gpus: 1
   gradient_clip_val: 0

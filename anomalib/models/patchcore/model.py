@@ -22,7 +22,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn.functional as F
 import torchvision
-from kornia import gaussian_blur2d
+from kornia.filters import gaussian_blur2d
 from omegaconf import ListConfig
 from torch import Tensor, nn
 
@@ -275,7 +275,6 @@ class PatchcoreLightning(AnomalyModule):
             backbone=hparams.model.backbone,
             apply_tiling=hparams.dataset.tiling.apply,
         )
-        self.automatic_optimization = False
         self.embeddings: List[Tensor] = []
 
     def configure_optimizers(self) -> None:

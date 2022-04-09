@@ -8,7 +8,9 @@ dataset:
   train_batch_size: 32
   test_batch_size: 32
   num_workers: 36
-  transform_config: null
+  transform_config:
+    train: null
+    val: null
   create_validation_set: false
 
 model:
@@ -26,8 +28,7 @@ project:
   seed: 42
   path: ./results
   log_images_to: []
-  logger: false
-  save_to_csv: false
+  logger: false # options: [tensorboard, wandb, csv] or combinations.
 
 # PL Trainer Args. Don't add extra parameter here.
 trainer:
@@ -39,9 +40,9 @@ trainer:
   auto_select_gpus: false
   benchmark: false
   check_val_every_n_epoch: 1 # Don't validate before extracting features.
-  checkpoint_callback: true
   default_root_dir: null
   deterministic: false
+  enable_checkpointing: true
   fast_dev_run: false
   gpus: 1
   gradient_clip_val: 0
